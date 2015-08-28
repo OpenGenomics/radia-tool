@@ -15,7 +15,7 @@
         <param name="MinAltBases" label="MinAltBases" type="integer" value="2" help="the minimum number of alternative reads supporting a variant at a position"/>
         <param name="MinBaseQuality" label="MinBaseQuality" type="integer" value="10" help="the minimum base quality"/>
         <param name="MinMappingQuality" label="MinMappingQuality" type="integer" value="10" help="the minimum mapping quality"/>
-        <param name="Description" label="Description" value="Normal DNA Sample" type="text" help="the description for the sample in the VCF header"/>
+        <param name="Description" label="Description" value="NormalDNASample" type="text" help="the single word description for the sample in the VCF header"/>
       </macro>
     </macros>
     <requirements>
@@ -106,7 +106,7 @@ radia.py
     <inputs>
       <param name="patientId" label="Patient ID (no spaces)" type="text" value="Patient" help="Patient's unique ID number"/>
       <param name="fastaFile" label="Reference Genome" type="data" format="fasta" help="Fasta file used for read alignments"/>
-      <param name="refId" label="Reference Genome ID" type="text" value="HG19" help="Genome used for read alignments"/>
+      <param name="refId" label="Reference Genome ID" type="text" value="hg19" help="Genome used for read alignments"/>
       <param name="refUrl" label="Reference Genome URL" type="text" value="" help="URL for genome fasta file(s)"/>
       <param name="dataSource" label="Data Source" type="text" value="" help="Original location of bam files"/>
       <param name="sequencingPlatform" label="SequencingPlatform" type="text" value="" help="E.g. Illumina"/>

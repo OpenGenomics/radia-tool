@@ -80,7 +80,8 @@ def bamChrScan(idx):
 def addNumsAndQuals(args, cmd, sample):
     """Append mapping quality parameters to radia command"""
     if sample == 'dnaNormal':
-        cmd+= " --dnaNormalMinTotalBases %d --dnaNormalMinAltBases %d --dnaNormalBaseQual %d --dnaNormalMapQual %d" % (
+        cmd+= " --dnaNormalDescription %s --dnaNormalMinTotalBases %d --dnaNormalMinAltBases %d --dnaNormalBaseQual %d --dnaNormalMapQual %d" % (
+            args.dnaNormalDesc,
             args.dnaNormalMinTotalBases,
             args.dnaNormalMinAltBases,
             args.dnaNormalMinBaseQual,
@@ -88,7 +89,8 @@ def addNumsAndQuals(args, cmd, sample):
         return cmd
 
     if sample == 'dnaTumor':
-        cmd+= " --dnaTumorMinTotalBases %d --dnaTumorMinAltBases %d --dnaTumorBaseQual %d --dnaTumorMapQual %d" % (
+        cmd+= " --dnaTumorDescription %s --dnaTumorMinTotalBases %d --dnaTumorMinAltBases %d --dnaTumorBaseQual %d --dnaTumorMapQual %d" % (
+            args.dnaTumorDesc,
             args.dnaTumorMinTotalBases,
             args.dnaTumorMinAltBases,
             args.dnaTumorMinBaseQual,
@@ -96,7 +98,8 @@ def addNumsAndQuals(args, cmd, sample):
         return cmd
 
     if sample == 'rnaNormal':
-        cmd+= " --rnaNormalMinTotalBases %d --rnaNormalMinAltBases %d --rnaNormalBaseQual %d --rnaNormalMapQual %d" % (
+        cmd+= " --rnaNormalDescription %s --rnaNormalMinTotalBases %d --rnaNormalMinAltBases %d --rnaNormalBaseQual %d --rnaNormalMapQual %d" % (
+            args.rnaNormalDesc,
             args.rnaNormalMinTotalBases,
             args.rnaNormalMinAltBases,
             args.rnaNormalMinBaseQual,
@@ -104,7 +107,8 @@ def addNumsAndQuals(args, cmd, sample):
         return cmd
 
     if sample == 'rnaTumor':
-        cmd+= " --rnaTumorMinTotalBases %d --rnaTumorMinAltBases %d --rnaTumorBaseQual %d --rnaTumorMapQual %d" % (
+        cmd+= " --rnaTumorDescription %s --rnaTumorMinTotalBases %d --rnaTumorMinAltBases %d --rnaTumorBaseQual %d --rnaTumorMapQual %d" % (
+            args.rnaTumorDesc,
             args.rnaTumorMinTotalBases,
             args.rnaTumorMinAltBases,
             args.rnaTumorMinBaseQual,
@@ -184,24 +188,23 @@ def radia(chrom, args, outputDir,
         cmd += ' --rnaTumorMitochon=' + mitName(idx)
 
     # add genotype parameters
-        cmd += ' --genotypeMinDepth %d --genotypeMinPct %.3f' % (
+    cmd += ' --genotypeMinDepth %d --genotypeMinPct %.3f' % (
             args.genotypeMinDepth,
             args.genotypeMinPct)
 
     # vcf header arguments
-        if args.refId:
-            cmd += ' --refId %s' % args.refId
-        if args.refUrl:
-            cmd += ' --refUrl %s' % args.refUrl
-        # this isn't implemented yet
-        if args.refFilename:
-            cmd += ' --refFilename %s' % args.refFilename
-        if args.dataSource:
-            cmd += ' --dataSource %s' % args.dataSource
-        if args.sequencingPlatform:
-            cmd += ' --sequencingPlatform %s' % args.sequencingPlatform
-        if args.disease:
-            cmd+= ' --disease %s' % args.disease
+    if args.refId:
+        cmd += ' --refId %s' % args.refId
+    if args.refUrl:
+        cmd += ' --refUrl %s' % args.refUrl
+    if args.refFilename:
+        cmd += ' --refFilename %s' % args.refFilename
+    if args.dataSource:
+        cmd += ' --dataSource %s' % args.dataSource
+    if args.sequencingPlatform:
+        cmd += ' --sequencingPlatform %s' % args.sequencingPlatform
+    if args.disease:
+        cmd+= ' --disease %s' % args.disease
 
     outfile = os.path.join(outputDir, args.patientId + "_chr" + chrom + ".vcf")
     if args.gzip:
@@ -245,6 +248,11 @@ def identicalName(inputList):
     if dup:
         print "ERROR: found duplicate input %s" % dup.pop()
         return True
+    return False
+
+def removeSpaces(mystring):
+    if mystring:
+        return ("_").join(mystring.split(" "))
     return False
 
 def get_bam_seq(inputBamFile):
@@ -301,7 +309,7 @@ def __main__():
     parser.add_argument("--dnaNormalBaseQual", type=int, default=int(10), dest="dnaNormalMinBaseQual", metavar="DNA_NOR_BASE_QUAL", help="the minimum normal DNA base quality, %default by default")
     parser.add_argument("--dnaNormalMapQual", type=int, default=int(10), dest="dnaNormalMinMappingQual", metavar="DNA_NOR_MAP_QUAL", help="the minimum normal DNA mapping quality, %default by default")
     parser.add_argument("--dnaNormalFasta", dest="dnaNormalFastaFilename", metavar="DNA_NOR_FASTA_FILE", help="the name of the fasta file for the normal DNA .bam file")
-    parser.add_argument("--dnaNormalDescription", default = "Normal DNA Sample", dest="dnaNormalDesc", metavar="DNA_NOR_DESC", help="the description for the sample in the VCF header, %default by default")
+    parser.add_argument("--dnaNormalDescription", default = "NormalDNASample", dest="dnaNormalDesc", metavar="DNA_NOR_DESC", help="the description for the sample in the VCF header, %default by default")
 
     # params for normal RNA
     parser.add_argument("-x", "--rnaNormalFilename", dest="rnaNormalFilename", metavar="RNA_NORMAL_FILE", help="the name of the normal RNA-Seq .bam file")
@@ -311,7 +319,7 @@ def __main__():
     parser.add_argument("--rnaNormalBaseQual", type=int, default=int(10), dest="rnaNormalMinBaseQual", metavar="RNA_NOR_BASE_QUAL", help="the minimum normal RNA-Seq base quality, %default by default")
     parser.add_argument("--rnaNormalMapQual", type=int, default=int(10), dest="rnaNormalMinMappingQual", metavar="RNA_NOR_MAP_QUAL", help="the minimum normal RNA-Seq mapping quality, %default by default")
     parser.add_argument("--rnaNormalFasta", dest="rnaNormalFastaFilename", metavar="RNA_NOR_FASTA_FILE", help="the name of the fasta file for the normal RNA .bam file")
-    parser.add_argument("--rnaNormalDescription", default = "Normal RNA Sample", dest="rnaNormalDesc", metavar="RNA_NOR_DESC", help="the description for the sample in the VCF header, %default by default")
+    parser.add_argument("--rnaNormalDescription", default = "NormalRNASample", dest="rnaNormalDesc", metavar="RNA_NOR_DESC", help="the description for the sample in the VCF header, %default by default")
 
     # params for tumor DNA
     parser.add_argument("-t", "--dnaTumorFilename", dest="dnaTumorFilename", metavar="DNA_TUMOR_FILE", help="the name of the tumor DNA .bam file")
@@ -321,7 +329,7 @@ def __main__():
     parser.add_argument("--dnaTumorBaseQual", type=int, default=int(10), dest="dnaTumorMinBaseQual", metavar="DNA_TUM_BASE_QUAL", help="the minimum tumor DNA base quality, %default by default")
     parser.add_argument("--dnaTumorMapQual", type=int, default=int(10), dest="dnaTumorMinMappingQual", metavar="DNA_TUM_MAP_QUAL", help="the minimum tumor DNA mapping quality, %default by default")
     parser.add_argument("--dnaTumorFasta", dest="dnaTumorFastaFilename", metavar="DNA_TUM_FASTA_FILE", help="the name of the fasta file for the tumor DNA .bam file")
-    parser.add_argument("--dnaTumorDescription", default = "Tumor DNA Sample", dest="dnaTumorDesc", metavar="DNA_TUM_DESC", help="the description for the sample in the VCF header, %default by default")
+    parser.add_argument("--dnaTumorDescription", default = "TumorDNASample", dest="dnaTumorDesc", metavar="DNA_TUM_DESC", help="the description for the sample in the VCF header, %default by default")
 
     # params for tumor RNA
     parser.add_argument("-r", "--rnaTumorFilename", dest="rnaTumorFilename", metavar="RNA_TUMOR_FILE", help="the name of the tumor RNA-Seq .bam file")
@@ -331,7 +339,7 @@ def __main__():
     parser.add_argument("--rnaTumorBaseQual", type=int, default=int(10), dest="rnaTumorMinBaseQual", metavar="RNA_TUM_BASE_QUAL", help="the minimum tumor RNA-Seq base quality, %default by default")
     parser.add_argument("--rnaTumorMapQual", type=int, default=int(10), dest="rnaTumorMinMappingQual", metavar="RNA_TUM_MAP_QUAL", help="the minimum tumor RNA-Seq mapping quality, %default by default")
     parser.add_argument("--rnaTumorFasta", dest="rnaTumorFastaFilename", metavar="RNA_TUM_FASTA_FILE", help="the name of the fasta file for the tumor RNA .bam file")
-    parser.add_argument("--rnaTumorDescription", default = "Tumor RNA Sample", dest="rnaTumorDesc", metavar="RNA_TUM_DESC", help="the description for the sample in the VCF header, %default by default")
+    parser.add_argument("--rnaTumorDescription", default = "TumorRNASample", dest="rnaTumorDesc", metavar="RNA_TUM_DESC", help="the description for the sample in the VCF header, %default by default")
 
 
     # some extra stuff
@@ -389,10 +397,17 @@ def __main__():
         else:
             i_rnaTumorFilename = None
 
+        # clean input descriptions (this matters if we want to create TCGA compliant headers in radia_filter)
+        args.dnaNormalDesc = removeSpaces(args.dnaNormalDesc)
+        args.dnaTumorDesc = removeSpaces(args.dnaTumorDesc)
+        args.rnaNormalDesc = removeSpaces(args.rnaNormalDesc)
+        args.rnaTumorDesc = removeSpaces(args.rnaTumorDesc)
+
         radiaOuts = []
         chroms = get_bam_seq(i_dnaNormalFilename)
         if args.procs == 1:
-            for chrom in chroms:
+            #for chrom in chroms:
+            for chrom in ["21","22"]:
                 cmd, radiaOutput = radia(chrom, args, tempDir,  
                      dnaNormalFilename=i_dnaNormalFilename, rnaNormalFilename=i_rnaNormalFilename, 
                      dnaTumorFilename=i_dnaTumorFilename, rnaTumorFilename=i_rnaTumorFilename,
@@ -403,7 +418,8 @@ def __main__():
                 radiaOuts.append(radiaOutput)
         else:
             cmds = []
-            for chrom in chroms:
+            #for chrom in chroms:
+            for chrom in ["21","22"]:
                 # create the RADIA commands
                 cmd, radiaOutput = radia(chrom, args, tempDir,
                             i_dnaNormalFilename, i_rnaNormalFilename, i_dnaTumorFilename, i_rnaTumorFilename,

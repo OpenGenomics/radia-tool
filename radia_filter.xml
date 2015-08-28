@@ -31,6 +31,9 @@ radia_filter.py
 #end if
 --inputVCF ${inputVCF}
 --fastaFilename ${inputFasta}
+#if $tcga:
+--makeTCGAcompliant
+#end if
 
 ## params for normal DNA
 #if $dnaNormal.use == "yes":
@@ -105,7 +108,7 @@ ${snpeff.canonical}
       <param name="patientId" label="Patient ID" type="text" value="MyPatient" help=""/>
       <param name="inputVCF" label="Radia VCF" type="data" format="vcf" help="Radia output vcf file"/>
       <param name="inputFasta" label="Universal fasta file used to create Bam files" type="data" format="fasta" help="Fasta file used to create all Bam files"/>
-
+      <param name="tcga" type="boolean" label="format for TCGA submission?" checked="true"/>
 
       <conditional name="dnaNormal">
         <param name="use" type="select" label="Use DNA Normal">

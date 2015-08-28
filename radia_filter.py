@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
-import argparse, os, shutil, subprocess, tempfile, time, gzip, zipfile, sys
+import argparse, os, re, shutil, subprocess, tempfile, time, gzip, zipfile, sys
 from multiprocessing import Pool
+from collections import OrderedDict
 
 def execute(cmd, output=None):
     import shlex
@@ -323,13 +324,14 @@ def radiaMerge(args, inputDir):
     #  --gzip                include this argument if the final VCF should be
     #                        compressed with gzip
     # radia works in the workdir
+    mergeOutput = os.path.join(args.workdir, "mergeOut.vcf")
     cmd = "python %s/mergeChroms.py %s %s %s -o %s" % (
         args.scriptsDir,
         args.patientId, inputDir, args.workdir,
-        args.outputFilename)
+        mergeOutput)
 #    if args.gzip:
 #        cmd += ' --gzip'
-    return cmd
+    return cmd, mergeOutput
 
 
 class localFiles(object):
@@ -374,6 +376,350 @@ class localFiles(object):
             return True
         return False
 
+#############################
+# TCGA compliance modules   # 
+#############################
+
+class VCFFormatError(Exception):
+
+    def __init__(self, text):
+        Exception.__init__(self, text)
+
+
+class Info:
+    """Object that holds information on VCF INFO header tag"""
+    def __init__(self, sampleid, number, sampletype, description):
+        self.id = sampleid
+        self.number = number
+        self.type = sampletype
+        self.description = description
+        
+    def __str__(self):
+        return '##INFO=<ID=%s,Number=%s,Type=%s,Description="%s">\n' % (self.id, self.number, self.type, self.description)
+
+def parse_info(info):
+    """Extracts keys and values from VCF INFO header tag, returns dict"""
+    info_dict = OrderedDict()
+    for i in info.split(";"):
+        if "=" in i:
+            key,value = i.split("=")
+            info_dict[key]=value
+        else:
+            info_dict[i]=True
+    return info_dict
+
+def format_info(info_dict):
+    """Formats INFO tag values for printing to VCF header"""
+    line_list = []
+    for key, value in info_dict.items():
+        if value is True:
+            line_list.append(key)
+        else:
+            line_list.append("%s=%s" % (key, value))
+    return ";".join(line_list)
+    
+class Data:
+    """Holds VCF body data"""
+    def __init__(self, chrom, pos, sampleid, ref, alt, qual, filters, info, genotype_data = None, extra_headers = None):
+        self.chrom = chrom
+        self.pos = int(pos)
+        self.id = sampleid.split(";")
+        self.ref = ref
+        self.alt = alt.split(",")
+        self.qual = int(float(qual))
+        self.filter = filters.split(";")
+        self.info = parse_info(info)
+        
+        self.genotype_data_order = genotype_data[0].split(":")
+        self.samples = extra_headers[1:]
+        
+        self.genotype_data = OrderedDict()
+        for sample, genotype_values in zip(self.samples, genotype_data[1:]):
+            self.genotype_data[sample] = OrderedDict()
+            for i, g in zip(self.genotype_data_order, genotype_values.split(":")):
+                self.genotype_data[sample][i] = g
+        #self.genotype = genotype_data
+        
+    def add_genotype_data(self, label, value_list):
+        #assert(len(value_list) == (len(self.samples)))
+        self.genotype_data_order.append(label)
+        for sample, value in zip(self.samples, value_list):
+            self.genotype_data[sample][label] = value
+
+    def __str__(self):
+        output = map(str, [self.chrom, self.pos, ";".join(self.id), self.ref, ",".join(self.alt), self.qual, ";".join(self.filter), format_info(self.info)])
+        output.append(":".join(self.genotype_data_order))
+        for sample in self.samples:
+            output.append(":".join(self.genotype_data[sample].values()))
+        return "\t".join(output)
+
+class VCF:
+    """Holds VCF info (header and body)"""
+    def __init__(self):
+        self.meta = []
+        self.infos = []
+        self.filters = []
+        self.formats = []
+        self.headers = []
+        self.data = []
+
+    def make_info(self, value):
+        
+        # TCGA doesn't allow a space before the final quote, and that is the default format from SnpEff
+        # so remove the space here
+        value = value.rstrip("\r\n")
+        if (value.endswith(' ">')):
+            value = value.replace(' ">', '">')
+            
+        #make re match spec
+        match = re.match(r"""<ID=(.*),Number=(.*),Type=(.*),Description=['"](.*)['"]""", value)
+        if match:
+            return Info(*match.groups())
+        else:
+            raise VCFFormatError("Improperly formatted INFO metadata: " + value)
+            
+    def set_headers(self, header_list):
+        self.headers = header_list
+
+    def make_data(self, data_list):
+        baseData = data_list[:8]
+        genotypeData = data_list[8:]
+        data = baseData+[genotypeData]+[self.headers[8:]]
+        return Data(*data)
+        
+
+def format_vcf(filename, outFile):
+    """Reformats VCF output to comply with TCGA specs"""
+    if (filename.endswith(".gz")):
+        vcf_file = gzip.open(filename,'rb')
+    else:
+        vcf_file = open(filename, "r")
+    vcf_out = open(outFile, 'w')    
+    currVCF = VCF()
+    line = ""
+    
+    rsid_dict = {}
+    
+    # first deal with the header info
+    for line in vcf_file:
+        # if it doesn't start with ##, then we're done with the header, so break out
+        if not line.startswith("##"):
+            break
+        
+        key,value = line[2:].split("=",1)
+        if key == "tcgaversion":
+            vcf_out.write("##tcgaversion=1.1\n")
+        elif key == "INDIVIDUAL":
+            continue
+        elif key == "INFO":
+            info = currVCF.make_info(value)
+            if info.id == "Gene":
+                continue
+            elif info.id == "VC":
+                continue
+            elif info.id == "SS":
+                info.type = "Integer"
+                vcf_out.write(str(info))
+            elif info.id == "VT":
+                info.description = "Variant type, can be SNP, INS or DEL"
+                vcf_out.write(str(info))
+            elif info.id == "DP":
+                info.description = "Total Depth across samples"
+                vcf_out.write(str(info))
+            elif info.id == "SOMATIC":
+                info.description = "Indicates if record is a somatic mutation"
+                vcf_out.write(str(info))
+            elif info.id == "DB":
+                info.description = "dbSNP membership"
+                vcf_out.write(str(info))
+            elif info.id == "NS":
+                info.description = "Number of Samples With Data"
+                vcf_out.write(str(info))
+            elif info.id == "AN":
+                info.description = "Total number of alleles in called genotypes"
+                vcf_out.write(str(info))
+            elif info.id == "AF":
+                info.description = "Allele Frequency in primary data, for each ALT allele, in the same order as listed"
+                vcf_out.write(str(info))
+            elif info.id == "BQ":
+                info.description = "RMS base quality"
+                info.type = "Integer"
+                vcf_out.write(str(info))
+            elif info.id == "SB":
+                info.description = "Strand bias"
+                vcf_out.write(str(info))
+            else:
+                vcf_out.write(str(info))
+        elif key == "FILTER":
+            if "ID=perfectsbias" in value:
+                vcf_out.write('##FILTER=<ID=perfectsbias,Description="A strand bias exists on the perfect reads.">' + "\n")
+            else:
+                vcf_out.write(line)
+        elif key == "FORMAT":
+            if "ID=AD" in value:
+                vcf_out.write('##FORMAT=<ID=AD,Number=.,Type=Integer,Description="Depth of reads supporting alleles 0/1/2/3...">' + "\n")
+            elif "ID=MQ" in value:
+                vcf_out.write('''##FORMAT=<ID=MQ,Number=1,Type=Integer,Description="Phred style probability score that the variant is novel with respect to the genome's ancestor">''' + "\n")
+                vcf_out.write('##FORMAT=<ID=MQA,Number=.,Type=Float,Description="Average mapping quality for reads supporting alleles">' + "\n")
+            elif "ID=BQ" in value:
+                vcf_out.write('##FORMAT=<ID=BQ,Number=.,Type=Integer,Description="Average base quality for reads supporting alleles">' + "\n")
+            elif "ID=DP" in value:
+                vcf_out.write('##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Read depth at this position in the sample">' + "\n")
+            elif "ID=SSC" in value:
+                continue
+            elif "ID=SS" in value:
+                continue
+            else:
+                vcf_out.write(line)
+        else:
+            vcf_out.write(line)
+    vcf_out.write('##INFO=<ID=SS,Number=1,Type=Integer,Description="Variant status relative to non-adjacent Normal,0=wildtype,1=germline,2=somatic,3=LOH,4=post-transcriptional modification,5=unknown">' + "\n")
+    vcf_out.write('##FORMAT=<ID=SS,Number=1,Type=Integer,Description="Variant status relative to non-adjacent Normal,0=wildtype,1=germline,2=somatic,3=LOH,4=post-transcriptional modification,5=unknown">' + "\n")
+    vcf_out.write('##FORMAT=<ID=SSC,Number=1,Type=Integer,Description="Somatic score between 0 and 255">' + "\n")
+
+    if line.startswith("#"):
+        headers = line[1:].strip().split("\t")
+        currVCF.set_headers(headers)
+        if headers[:8] != ["CHROM","POS","ID","REF","ALT","QUAL","FILTER","INFO"]:
+            print >> sys.stderr, "Traceback: ERROR: The headers don't seem to be right, expected " + '["CHROM","POS","ID","REF","ALT","QUAL","FILTER","INFO"]' + " but got " + str(headers)
+            sys.exit(1)
+    else:
+        print >> sys.stderr, "Traceback: ERROR: expected # followed by headers"
+        sys.exit(1)
+        
+    vcf_out.write(line)
+
+    # Now look at the vcf body
+    for line in vcf_file:
+        dataAsList = line.strip().split("\t")
+        
+        # note from Amie:
+        # this is awful.  there is sth wrong with the bambam and radia merging script so that
+        # some lines don't have the proper header (excluding the RNA_TUMOR header) and then 
+        # the data has a . in the RNA_TUMOR column.  as a hack, add 1 to length here.
+        if (len(dataAsList) == len(headers) or len(dataAsList) == (len(headers)+1)):
+            curr_data = currVCF.make_data(dataAsList)
+            
+            #handle SS, how should I do wildtype?
+            if curr_data.info["VT"] == "LOH":
+                curr_data.info["SS"] = "3"
+            elif curr_data.info["SS"] == "Germline":
+                curr_data.info["SS"] = "1"
+            elif curr_data.info["SS"] == "Somatic":
+                curr_data.info["SS"] = "2"
+            
+            #handle VT
+            if curr_data.info["VT"] in ["SDel", "GDel", "Del"]:
+                curr_data.info["VT"] = "DEL"
+            if curr_data.info["VT"] in ["SIns", "GIns", "Ins"]:
+                curr_data.info["VT"] = "INS"
+            elif curr_data.info["VT"] == "LOH":
+                if len(curr_data.ref) > len(curr_data.alt[0]):
+                    curr_data.info["VT"] = "DEL"
+                if len(curr_data.ref) == len(curr_data.alt[0]):
+                    curr_data.info["VT"] = "SNP"
+                if len(curr_data.ref) < len(curr_data.alt[0]):
+                    curr_data.info["VT"] = "INS"
+            
+            #add SS to genotype information
+            if "RNA_NORMAL" in curr_data.genotype_data:
+                curr_data.add_genotype_data("SS", ["0", "0", curr_data.info["SS"], curr_data.info["SS"]])
+            elif "RNA_TUMOR" in curr_data.genotype_data:
+                curr_data.add_genotype_data("SS", ["0", curr_data.info["SS"], curr_data.info["SS"]])
+            else:
+                curr_data.add_genotype_data("SS", ["0", curr_data.info["SS"]])
+                
+            #handle ID
+            for rsid in curr_data.id:
+                if rsid != ".":
+                    if rsid in rsid_dict:
+                        if rsid_dict[rsid] == "many":
+                            curr_data.id[curr_data.id.index(rsid)] = rsid + "_%s_%d" % (curr_data.chrom, curr_data.pos)
+                        else:
+                            #only one other has been found, so we need to change the original as well
+                            prevdata = rsid_dict[rsid]
+                            rsid_dict[rsid] = "many"
+                            prevdata.id[prevdata.id.index(rsid)] = rsid + "_%s_%d" % (prevdata.chrom, prevdata.pos)
+                            curr_data.id[curr_data.id.index(rsid)] = rsid + "_%s_%d" % (curr_data.chrom, curr_data.pos)
+                    else:
+                        rsid_dict[rsid] = curr_data
+            #delete Gene
+            if "Gene" in curr_data.info:
+                del curr_data.info["Gene"]
+            
+            #delete VC
+            if "VC" in curr_data.info:
+                del curr_data.info["VC"]
+            
+            #fix y chromosome stuff
+            if curr_data.chrom == "Y":
+                for sample in curr_data.genotype_data:
+                    if '/' in curr_data.genotype_data[sample]["GT"]:
+                        g = curr_data.genotype_data[sample]["GT"]
+                        left, right = re.match(r'(\d)/(\d)', g).groups()
+                        curr_data.genotype_data[sample]["GT"] = max(left, right)
+            
+            
+            #if there is no info, make sure it is ./.
+            if curr_data.chrom != "Y":
+                for sample in curr_data.genotype_data:
+                    if curr_data.genotype_data[sample]["GT"] == ".":
+                        curr_data.genotype_data[sample]["GT"] = "./."
+            
+            #add somatic score
+            if "RNA_NORMAL" in curr_data.genotype_data:
+                curr_data.add_genotype_data("SSC", [str(curr_data.qual), str(curr_data.qual), str(curr_data.qual), str(curr_data.qual)])
+            elif "RNA_TUMOR" in curr_data.genotype_data:
+                curr_data.add_genotype_data("SSC", [str(curr_data.qual), str(curr_data.qual), str(curr_data.qual)])
+            else:
+                curr_data.add_genotype_data("SSC", [str(curr_data.qual), str(curr_data.qual)])
+            
+            #add MQA and fix MQ
+            if "MQ" in curr_data.genotype_data["DNA_NORMAL"]:
+                if "RNA_NORMAL" in curr_data.genotype_data and "MQ" in curr_data.genotype_data["RNA_NORMAL"]:
+                    curr_data.add_genotype_data("MQA", [curr_data.genotype_data["DNA_NORMAL"]["MQ"], curr_data.genotype_data["RNA_NORMAL"]["MQ"], curr_data.genotype_data["DNA_TUMOR"]["MQ"], curr_data.genotype_data["RNA_TUMOR"]["MQ"]])
+                elif "RNA_TUMOR" in curr_data.genotype_data and "MQ" in curr_data.genotype_data["RNA_TUMOR"]:
+                    curr_data.add_genotype_data("MQA", [curr_data.genotype_data["DNA_NORMAL"]["MQ"], curr_data.genotype_data["DNA_TUMOR"]["MQ"], curr_data.genotype_data["RNA_TUMOR"]["MQ"]])
+                else:
+                    curr_data.add_genotype_data("MQA", [curr_data.genotype_data["DNA_NORMAL"]["MQ"], curr_data.genotype_data["DNA_TUMOR"]["MQ"]])
+            
+            for sample in curr_data.genotype_data:
+                if "MQ" not in curr_data.genotype_data[sample] or curr_data.genotype_data[sample]["MQ"] == ".":
+                    continue
+                depths = map(int, curr_data.genotype_data[sample]["DP"].split(","))
+                quals = map(float, curr_data.genotype_data[sample]["MQ"].split(","))
+                tot = 0
+                for depth, qual in zip(depths, quals):
+                    tot += depth * qual
+                #curr_data.genotype_data[sample]["MQ"] = str(int(tot / sum(depths)))
+                curr_data.genotype_data[sample]["MQ"] = "0"
+
+            #make BQ int
+            for sample in curr_data.genotype_data:
+                if "BQ" not in curr_data.genotype_data[sample] or curr_data.genotype_data[sample]["BQ"] == ".":
+                    continue
+                quals = map(int, map(float, curr_data.genotype_data[sample]["BQ"].split(",")))
+                curr_data.genotype_data[sample]["BQ"] = ",".join(map(str, quals))
+            if "BQ" in curr_data.info:
+                curr_data.info["BQ"] = str(int(float(curr_data.info["BQ"])))
+            
+            #fix rtbias
+            if "rtbias" in curr_data.filter:
+                curr_data.filter.remove("rtbias")
+                curr_data.filter.append("rtsbias")
+            #empty out a set of genotype data if we don't know the genotype 
+            for sample in curr_data.genotype_data:
+                if curr_data.genotype_data[sample]["GT"] == "." or curr_data.genotype_data[sample]["GT"] == "./.":
+                    gt = OrderedDict()
+                    for formatItem in curr_data.genotype_data_order:
+                        gt[formatItem] = "."
+                    curr_data.genotype_data[sample] = gt
+
+            vcf_out.write(str(curr_data) + "\n")
+
+
+
+
 def __main__():
     time.sleep(1) #small hack, sometimes it seems like docker file systems are avalible instantly
     parser = argparse.ArgumentParser(description="RADIA filter")
@@ -388,6 +734,7 @@ def __main__():
     parser.add_argument("--outputDir", dest="outputDir", required=True, metavar="FILTER_OUT_DIR", help="the directory where temporary and final filtered output should be stored")
     parser.add_argument("--scriptsDir", dest="scriptsDir", required=True, metavar="SCRIPTS_DIR", help="the directory that contains the RADIA filter scripts")
     parser.add_argument("-f", "--fastaFilename", dest="fastaFilename", metavar="FASTA_FILE", help="the name of the fasta file that can be used on all .bams, see below for specifying individual fasta files for each .bam file")
+    parser.add_argument("--makeTCGAcompliant", action="store_true", default=False, dest="makeTCGAcompliant", help="Change VCF to make TCGA v1.1 compliant")
 
     # normal DNA
     parser.add_argument("-n", "--dnaNormalFilename", dest="dnaNormalFilename", metavar="DNA_NORMAL_FILE", help="the name of the normal DNA .bam file")
@@ -509,7 +856,8 @@ def __main__():
 
         rfOuts = []
         if args.procs == 1:
-            for chrom in chromDict:
+            #for chrom in chromDict:
+            for chrom in ["21","22"]:
                 logFile = os.path.join(args.workdir, "log." + chrom)
                 cmd,outfile = radiaFilter(filterDirs, snpEffGenome, snpEffConfig, args, chrom, chromDict[chrom], tempDir, logFile)
 		# the output is generated by the filter, not on stdout
@@ -522,7 +870,8 @@ def __main__():
         else:
             cmds = []
             rawOuts = dict()
-            for chrom in chromDict:
+            #for chrom in chromDict:
+            for chrom in ["21","22"]:
                 logFile = os.path.join(args.workdir, "log." + chrom)
                 cmd, outfile = radiaFilter(filterDirs, snpEffGenome, snpEffConfig, args, chrom, chromDict[chrom], tempDir, logFile)
                 cmds.append(cmd)
@@ -531,21 +880,24 @@ def __main__():
             values = p.map(execute, cmds, 1)
             # check if all output files are the same size as inputs
             # and print logging info to stderr
-            for chrom in chromDict:
+            #for chrom in chromDict:
+            for chrom in ["21","22"]:
                 logFile = os.path.join(args.workdir, "log." + chrom)
                 with open(logFile, 'r') as f:
                     print >>sys.stderr, f.read()
                 if not correctLineCount(chromLines[chrom], rawOuts[chrom]):
                     raise Exception("RadiaFilter sanity check failed")
 
-
-
-
         # the radiaMerge command only uses the output directory and patient name
-        cmd = radiaMerge(args, tempDir)
+        cmd, mergeOut = radiaMerge(args, tempDir)
         if execute(cmd):
             raise Exception("RadiaMerge Call failed")
 
+        # tcga compliance (note that this does NOT create the vcfLog tag)
+        if args.makeTCGAcompliant:
+            format_vcf(mergeOut, args.outputFilename)
+        else:
+            shutil.move(mergeOut, args.outputFilename)
 
     finally:
         args.no_clean = True
