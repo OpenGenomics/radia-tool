@@ -406,8 +406,7 @@ def __main__():
         radiaOuts = []
         chroms = get_bam_seq(i_dnaNormalFilename)
         if args.procs == 1:
-            #for chrom in chroms:
-            for chrom in ["21","22"]:
+            for chrom in chroms:
                 cmd, radiaOutput = radia(chrom, args, tempDir,  
                      dnaNormalFilename=i_dnaNormalFilename, rnaNormalFilename=i_rnaNormalFilename, 
                      dnaTumorFilename=i_dnaTumorFilename, rnaTumorFilename=i_rnaTumorFilename,
@@ -418,8 +417,7 @@ def __main__():
                 radiaOuts.append(radiaOutput)
         else:
             cmds = []
-            #for chrom in chroms:
-            for chrom in ["21","22"]:
+            for chrom in chroms:
                 # create the RADIA commands
                 cmd, radiaOutput = radia(chrom, args, tempDir,
                             i_dnaNormalFilename, i_rnaNormalFilename, i_dnaTumorFilename, i_rnaTumorFilename,
