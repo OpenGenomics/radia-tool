@@ -878,7 +878,7 @@ def __main__():
             values = p.map(execute, cmds, 1)
             # check if all output files are the same size as inputs
             # and print logging info to stderr
-            #for chrom in chromDict:
+            for chrom in chromDict:
                 logFile = os.path.join(args.workdir, "log." + chrom)
                 with open(logFile, 'r') as f:
                     print >>sys.stderr, f.read()
