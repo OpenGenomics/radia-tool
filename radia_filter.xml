@@ -35,6 +35,10 @@ radia_filter.py
 --makeTCGAcompliant
 #end if
 
+#if $filterRejects:
+--filter-rejects
+#end if
+
 ## params for normal DNA
 #if $dnaNormal.use == "yes":
 --dnaNormalFilename ${dnaNormal.inputbam}
@@ -109,6 +113,8 @@ ${snpeff.canonical}
       <param name="inputVCF" label="Radia VCF" type="data" format="vcf" help="Radia output vcf file"/>
       <param name="inputFasta" label="Universal fasta file used to create Bam files" type="data" format="fasta" help="Fasta file used to create all Bam files"/>
       <param name="tcga" type="boolean" label="format for TCGA submission?" checked="true"/>
+      <param name="filterRejects" type="boolean" label="Filter Rejected calls" checked="true"/>
+
 
       <conditional name="dnaNormal">
         <param name="use" type="select" label="Use DNA Normal">
