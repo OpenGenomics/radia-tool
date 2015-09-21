@@ -488,7 +488,7 @@ class VCF:
         return Data(*data)
         
 
-def format_vcf(filename, outFile, filterRejects):
+def format_vcf(filename, outFile, filterRejects, filterGermline):
     """Reformats VCF output to comply with TCGA specs"""
     if (filename.endswith(".gz")):
         vcf_file = gzip.open(filename,'rb')
@@ -716,7 +716,8 @@ def format_vcf(filename, outFile, filterRejects):
                     curr_data.genotype_data[sample] = gt
             
             if not filterRejects or "PASS" in curr_data.filter:
-                vcf_out.write(str(curr_data) + "\n")
+                if not filterGermline or curr_data.info["SS"] != 1:
+                    vcf_out.write(str(curr_data) + "\n")
 
 
 
@@ -737,6 +738,7 @@ def __main__():
     parser.add_argument("-f", "--fastaFilename", dest="fastaFilename", metavar="FASTA_FILE", help="the name of the fasta file that can be used on all .bams, see below for specifying individual fasta files for each .bam file")
     parser.add_argument("--makeTCGAcompliant", action="store_true", default=False, dest="makeTCGAcompliant", help="Change VCF to make TCGA v1.1 compliant")
     parser.add_argument("--filter-rejects", action="store_true", default=False, dest="filterRejects", help="Filter out rejected calls")
+    parser.add_argument("--filter-germline", action="store_true", default=False, dest="filterGermline", help="Filter out germline calls")
     # normal DNA
     parser.add_argument("-n", "--dnaNormalFilename", dest="dnaNormalFilename", metavar="DNA_NORMAL_FILE", help="the name of the normal DNA .bam file")
     parser.add_argument("--dnaNormalBaiFilename", dest="dnaNormalBaiFilename", metavar="DNA_NORMAL_BAI_FILE", help="the name of the normal DNA .bai file")
@@ -893,7 +895,7 @@ def __main__():
 
         # tcga compliance (note that this does NOT create the vcfLog tag)
         if args.makeTCGAcompliant:
-            format_vcf(mergeOut, args.outputFilename, args.filterRejects)
+            format_vcf(mergeOut, args.outputFilename, args.filterRejects, args.filterGermline)
         else:
             shutil.move(mergeOut, args.outputFilename)
 
