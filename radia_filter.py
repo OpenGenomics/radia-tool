@@ -716,7 +716,7 @@ def format_vcf(filename, outFile, filterRejects, filterGermline):
                     curr_data.genotype_data[sample] = gt
             
             if not filterRejects or "PASS" in curr_data.filter:
-                if not filterGermline or curr_data.info["SS"] != 1:
+                if not filterGermline or curr_data.info["SS"] != "1":
                     vcf_out.write(str(curr_data) + "\n")
 
 
