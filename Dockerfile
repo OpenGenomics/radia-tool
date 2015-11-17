@@ -1,11 +1,13 @@
 FROM java
 
-RUN   apt-get update && apt-get install -y wget python python-pip samtools python-dev zlib1g-dev unzip
-RUN   apt-get install -y vim
+RUN   apt-get update && apt-get install -y wget python python-pip python-dev zlib1g-dev unzip libncurses-dev
+WORKDIR /opt
+RUN   wget -O samtools-0.1.18.tar.gz https://github.com/samtools/samtools/archive/0.1.18.tar.gz && tar -xvzf samtools-0.1.18.tar.gz && rm -f samtools-0.1.18.tar.gz
+RUN   cd /opt/samtools-0.1.18 && make && cp /opt/samtools-0.1.18/samtools /usr/bin/
+
 RUN   pip install pysam
 RUN   pip install PyVCF
 
-WORKDIR /opt
 
 #Download and unpack radia
 RUN   wget https://github.com/ucscCancer/radia/archive/v1.1.5.tar.gz && tar xvzf v1.1.5.tar.gz 
