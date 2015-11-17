@@ -1,23 +1,4 @@
 <tool id="radia" name="radia" version="0.1.0">
-    <macros>
-      <macro name="input_params">
-        <param name="inputbam" label="InputBam" type="data" format="bam" help="Input BAM"/>
-        <conditional name="fasta">
-        <param name="use" type="select" label="Use different fasta">
-          <option value="yes">yes</option>
-          <option value="no" selected="True">no</option>
-        </param>
-        <when value="yes">
-          <param name="inputfasta" label="Fasta file used to create Bam file (if different from top)" type="data" format="fasta" help="Fasta file used to create this bam file"/>
-        </when>
-      </conditional>
-        <param name="MinTotalBases" label="MinTotalBases" type="integer" value="4" help="the minimum number of overall reads covering a position"/>
-        <param name="MinAltBases" label="MinAltBases" type="integer" value="2" help="the minimum number of alternative reads supporting a variant at a position"/>
-        <param name="MinBaseQuality" label="MinBaseQuality" type="integer" value="10" help="the minimum base quality"/>
-        <param name="MinMappingQuality" label="MinMappingQuality" type="integer" value="10" help="the minimum mapping quality"/>
-        <param name="Description" label="Description" value="NormalDNASample" type="text" help="the single word description for the sample in the VCF header"/>
-      </macro>
-    </macros>
     <requirements>
       <container type="docker">radia:1.1.5</container>
     </requirements>
@@ -44,8 +25,8 @@ radia.py
 
 ## params for normal DNA
 #if $dnaNormal.use == "yes":
---dnaNormalFilename ${dnaNormal.inputbam}
---dnaNormalBaiFilename ${dnaNormal.inputbam.metadata.bam_index}
+--dnaNormalFilename ${dnaNormal.dn_inputbam}
+--dnaNormalBaiFilename ${dnaNormal.dn_inputbam.metadata.bam_index}
 #if $dnaNormal.fasta.use == "yes"
 --dnaNormalFasta ${dnaNormal.fasta.inputfasta}
 #end if
@@ -58,8 +39,8 @@ radia.py
 
 ## params for normal RNA
 #if $rnaNormal.use == "yes":
---rnaNormalFilename ${rnaNormal.inputbam}
---rnaNormalBaiFilename ${rnaNormal.inputbam.metadata.bam_index}
+--rnaNormalFilename ${rnaNormal.rn_inputbam}
+--rnaNormalBaiFilename ${rnaNormal.rn_inputbam.metadata.bam_index}
 #if $rnaNormal.fasta.use == "yes"
 --rnaNormalFasta ${rnaNormal.fasta.inputfasta}
 #end if
@@ -73,8 +54,8 @@ radia.py
 
 ## params for tumor DNA
 #if $dnaTumor.use == "yes":
---dnaTumorFilename ${dnaTumor.inputbam}
---dnaTumorBaiFilename ${dnaTumor.inputbam.metadata.bam_index}
+--dnaTumorFilename ${dnaTumor.dt_inputbam}
+--dnaTumorBaiFilename ${dnaTumor.dt_inputbam.metadata.bam_index}
 #if $dnaTumor.fasta.use == "yes"
 --dnaTumorFasta ${dnaTumor.fasta.inputfasta}
 #end if
@@ -87,8 +68,8 @@ radia.py
 
 ## params for tumor RNA
 #if $rnaTumor.use == "yes":
---rnaTumorFilename ${rnaTumor.inputbam}
---rnaTumorBaiFilename ${rnaTumor.inputbam.metadata.bam_index}
+--rnaTumorFilename ${rnaTumor.rt_inputbam}
+--rnaTumorBaiFilename ${rnaTumor.rt_inputbam.metadata.bam_index}
 #if $rnaTumor.fasta.use == "yes"
 --rnaTumorFasta ${rnaTumor.fasta.inputfasta}
 #end if
@@ -121,7 +102,21 @@ radia.py
           <option value="no" selected="True">no</option>
         </param>
         <when value="yes">
-          <expand macro="input_params"/>
+          <param name="dn_inputbam" label="DNA Normal InputBam" type="data" format="bam" help="Input BAM"/>
+          <conditional name="fasta">
+            <param name="use" type="select" label="Use different fasta">
+              <option value="yes">yes</option>
+              <option value="no" selected="True">no</option>
+            </param>
+            <when value="yes">
+              <param name="inputfasta" label="Fasta file used to create Bam file (if different from top)" type="data" format="fasta" help="Fasta file used to create this bam file"/>
+            </when>
+          </conditional>
+          <param name="MinTotalBases" label="MinTotalBases" type="integer" value="4" help="the minimum number of overall reads covering a position"/>
+          <param name="MinAltBases" label="MinAltBases" type="integer" value="2" help="the minimum number of alternative reads supporting a variant at a position"/>
+          <param name="MinBaseQuality" label="MinBaseQuality" type="integer" value="10" help="the minimum base quality"/>
+          <param name="MinMappingQuality" label="MinMappingQuality" type="integer" value="10" help="the minimum mapping quality"/>
+          <param name="Description" label="Description" value="NormalDNASample" type="text" help="the single word description for the sample in the VCF header"/>
         </when>
       </conditional>
 
@@ -131,7 +126,21 @@ radia.py
           <option value="no" selected="True">no</option>
         </param>
         <when value="yes">
-          <expand macro="input_params"/>
+          <param name="dt_inputbam" label="DNA Tumor InputBam" type="data" format="bam" help="Input BAM"/>
+          <conditional name="fasta">
+            <param name="use" type="select" label="Use different fasta">
+              <option value="yes">yes</option>
+              <option value="no" selected="True">no</option>
+            </param>
+            <when value="yes">
+              <param name="inputfasta" label="Fasta file used to create Bam file (if different from top)" type="data" format="fasta" help="Fasta file used to create this bam file"/>
+            </when>
+          </conditional>
+          <param name="MinTotalBases" label="MinTotalBases" type="integer" value="4" help="the minimum number of overall reads covering a position"/>
+          <param name="MinAltBases" label="MinAltBases" type="integer" value="2" help="the minimum number of alternative reads supporting a variant at a position"/>
+          <param name="MinBaseQuality" label="MinBaseQuality" type="integer" value="10" help="the minimum base quality"/>
+          <param name="MinMappingQuality" label="MinMappingQuality" type="integer" value="10" help="the minimum mapping quality"/>
+          <param name="Description" label="Description" value="NormalDNASample" type="text" help="the single word description for the sample in the VCF header"/>
         </when>
       </conditional>
 
@@ -141,7 +150,21 @@ radia.py
           <option value="no" selected="True">no</option>
         </param>
         <when value="yes">
-          <expand macro="input_params"/>
+          <param name="rn_inputbam" label="RNA Normal InputBam" type="data" format="bam" help="Input BAM"/>
+          <conditional name="fasta">
+          <param name="use" type="select" label="Use different fasta">
+            <option value="yes">yes</option>
+            <option value="no" selected="True">no</option>
+          </param>
+          <when value="yes">
+            <param name="inputfasta" label="Fasta file used to create Bam file (if different from top)" type="data" format="fasta" help="Fasta file used to create this bam file"/>
+          </when>
+        </conditional>
+          <param name="MinTotalBases" label="MinTotalBases" type="integer" value="4" help="the minimum number of overall reads covering a position"/>
+          <param name="MinAltBases" label="MinAltBases" type="integer" value="2" help="the minimum number of alternative reads supporting a variant at a position"/>
+          <param name="MinBaseQuality" label="MinBaseQuality" type="integer" value="10" help="the minimum base quality"/>
+          <param name="MinMappingQuality" label="MinMappingQuality" type="integer" value="10" help="the minimum mapping quality"/>
+          <param name="Description" label="Description" value="NormalDNASample" type="text" help="the single word description for the sample in the VCF header"/>
         </when>
       </conditional>
 
@@ -151,7 +174,21 @@ radia.py
           <option value="no" selected="True">no</option>
         </param>
         <when value="yes">
-          <expand macro="input_params"/>
+          <param name="rt_inputbam" label="RNA Tumor InputBam" type="data" format="bam" help="Input BAM"/>
+          <conditional name="fasta">
+          <param name="use" type="select" label="Use different fasta">
+            <option value="yes">yes</option>
+            <option value="no" selected="True">no</option>
+          </param>
+          <when value="yes">
+            <param name="inputfasta" label="Fasta file used to create Bam file (if different from top)" type="data" format="fasta" help="Fasta file used to create this bam file"/>
+          </when>
+        </conditional>
+          <param name="MinTotalBases" label="MinTotalBases" type="integer" value="4" help="the minimum number of overall reads covering a position"/>
+          <param name="MinAltBases" label="MinAltBases" type="integer" value="2" help="the minimum number of alternative reads supporting a variant at a position"/>
+          <param name="MinBaseQuality" label="MinBaseQuality" type="integer" value="10" help="the minimum base quality"/>
+          <param name="MinMappingQuality" label="MinMappingQuality" type="integer" value="10" help="the minimum mapping quality"/>
+          <param name="Description" label="Description" value="NormalDNASample" type="text" help="the single word description for the sample in the VCF header"/>
         </when>
       </conditional>
     </inputs>
