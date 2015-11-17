@@ -13,6 +13,7 @@ def execute(cList):
     except:
         output = None
     try:
+        print "Calling", cmd
         process = subprocess.Popen(args=shlex.split(cmd), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout,stderr = process.communicate()
     except Exception, e: # error from my command : stderr
@@ -30,7 +31,7 @@ def execute(cList):
 def indexBam(workdir, prefix, inputBamFile, inputBamFileIndex=None):
     inputBamLink = os.path.join(os.path.abspath(workdir), prefix + ".bam" )
     os.symlink(inputBamFile, inputBamLink)
-    if inputBamFileIndex is None:
+    if inputBamFileIndex is None or inputBamFileIndex == "None":
         cmd = "samtools index %s" %(inputBamLink)
         execute([cmd])
     else:
@@ -54,6 +55,7 @@ def idxStats(bamfile):
     """runs samtools idxstats"""
     samtools = which("samtools")
     cmd = [samtools, "idxstats", bamfile]
+    print "CAlling", cmd
     process = subprocess.Popen(args=cmd, stdout=subprocess.PIPE)
     stdout, stderr = process.communicate()
     return stdout
@@ -258,6 +260,7 @@ def removeSpaces(mystring):
 def get_bam_seq(inputBamFile):
     samtools = which("samtools")
     cmd = [samtools, "idxstats", inputBamFile]
+    print "calling", cmd
     process = subprocess.Popen(args=cmd, stdout=subprocess.PIPE)
     stdout, stderr = process.communicate()
     seqs = []
@@ -412,6 +415,7 @@ def __main__():
                      dnaTumorFilename=i_dnaTumorFilename, rnaTumorFilename=i_rnaTumorFilename,
                      dnaNormalFastaFilename=i_dnaNormalFastaFilename, rnaNormalFastaFilename=i_rnaNormalFastaFilename, 
                      dnaTumorFastaFilename=i_dnaTumorFastaFilename, rnaTumorFastaFilename=i_rnaTumorFastaFilename)
+                print "Calling: ", cmd
                 if execute([cmd, radiaOutput]):
                     raise Exception("Radia Call failed")
                 radiaOuts.append(radiaOutput)
