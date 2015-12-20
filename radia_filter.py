@@ -37,7 +37,7 @@ def correctLineCount(number, vcfFile):
         count += 1
     f.close()
     if count != number:
-        sys.stdout.write("ERROR expected %d non header lines in %s, got %d\n" % (vcfFile, count, number))
+        sys.stdout.write("ERROR expected %s non header lines in %s, got %s\n" % (vcfFile, count, number))
         return False
     return True
 
@@ -60,7 +60,7 @@ def indexFasta(workdir, inputFastaFile, inputFastaFileIndex=None, prefix="dna"):
         os.symlink(inputFastaFileIndex, inputFastaLink + ".fai")
     else:
         cmd = "samtools faidx %s" %(inputFastaLink)
-        execute([cmd])
+        execute(cmd)
     return inputFastaLink
 
 def get_read_fileHandler(aFilename):
