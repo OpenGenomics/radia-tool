@@ -780,7 +780,7 @@ def __main__():
 
 
     # some extra stuff
-    parser.add_argument('--number_of_procs', dest='procs', type=int, default=8)
+    parser.add_argument('--number_of_procs', dest='procs', type=int, default=1)
     parser.add_argument('--workdir', default="./")
     parser.add_argument('--no_clean', action="store_true", default=False)
 
@@ -866,7 +866,8 @@ def __main__():
                 if execute(cmd):
                     raise Exception("RadiaFilter Call failed")
                 if not correctLineCount(chromLines[chrom], outfile):
-                    raise Exception("RadiaFilter sanity check failed")
+                    errmsg = "RadiaFilter sanity check failed on chrom %s\n" % (chrom)
+                    raise Exception(errmsg)
                 with open(logFile, 'r') as f:
                     print >>sys.stderr, f.read()
         else:
