@@ -887,7 +887,8 @@ def __main__():
                 with open(logFile, 'r') as f:
                     print >>sys.stderr, f.read()
                 if not correctLineCount(chromLines[chrom], rawOuts[chrom]):
-                    raise Exception("RadiaFilter sanity check failed")
+                    errmsg = "RadiaFilter sanity check failed on chrom %s\n" % (chrom)
+                    raise Exception(errmsg)
 
         # the radiaMerge command only uses the output directory and patient name
         cmd, mergeOut = radiaMerge(args, tempDir)
