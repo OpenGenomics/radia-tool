@@ -282,7 +282,7 @@ inputs:
   number_of_procs:
     type: int?
     doc: |
-      number of cpus to use (8)
+      number of cpus to use (1)
     inputBinding:
       position: 2
       prefix: --number_of_procs
