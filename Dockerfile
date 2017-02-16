@@ -21,3 +21,6 @@ RUN   wget http://downloads.sourceforge.net/project/snpeff/snpEff_latest_core.zi
 # cleanup
 RUN   rm -rf v1.1.5.tar.gz snpEff_latest_core.zip snpEff/galaxy snpEff/examples 
 
+COPY radia.py /opt/
+COPY radia_filter.py /opt/
+RUN chmod +x /opt/radia*

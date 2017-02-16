@@ -732,9 +732,9 @@ def __main__():
     #############################
     parser.add_argument("--inputVCF", dest="inputVCF", required=True, metavar="INPUT_VCF", help="The input Radia vcf file")
     parser.add_argument("--patientId", dest="patientId", required=True, metavar="PATIENT_ID", help="a unique patient Id that will be used to name the output file")
-    parser.add_argument("-o", "--outputFilename", dest="outputFilename", required=True, metavar="OUTPUT_FILE", default='out.vcf', help="the name of the output file")
-    parser.add_argument("--outputDir", dest="outputDir", required=True, metavar="FILTER_OUT_DIR", help="the directory where temporary and final filtered output should be stored")
-    parser.add_argument("--scriptsDir", dest="scriptsDir", required=True, metavar="SCRIPTS_DIR", help="the directory that contains the RADIA filter scripts")
+    parser.add_argument("-o", "--outputFilename", dest="outputFilename", default="filtered_out.vcf", metavar="OUTPUT_FILE", help="the name of the output file (filtered_out.vcf)")
+    parser.add_argument("--outputDir", dest="outputDir", default='./', metavar="FILTER_OUT_DIR", help="the directory where temporary and final filtered output should be stored")
+    parser.add_argument("--scriptsDir", dest="scriptsDir", default='/opt/radia-1.1.5/scripts', metavar="SCRIPTS_DIR", help="the directory that contains the RADIA filter scripts")
     parser.add_argument("-f", "--fastaFilename", dest="fastaFilename", metavar="FASTA_FILE", help="the name of the fasta file that can be used on all .bams, see below for specifying individual fasta files for each .bam file")
     parser.add_argument("--makeTCGAcompliant", action="store_true", default=False, dest="makeTCGAcompliant", help="Change VCF to make TCGA v1.1 compliant")
     parser.add_argument("--filter-rejects", action="store_true", default=False, dest="filterRejects", help="Filter out rejected calls")
@@ -766,9 +766,9 @@ def __main__():
     parser.add_argument("--retroGenesFilename", dest="retroGenesFilename", metavar="RETRO_FILE", help="the name of the retrogenes bed file")
     parser.add_argument("--pseudoGenesFilename", dest="pseudoGenesFilename", metavar="PSEUDO_FILE", help="the name of the pseudogenes bed file")
     parser.add_argument("--cosmicFilename", dest="cosmicFilename", metavar="COSMIC_FILE", help="the name of the Catalogue Of Somatic Mutations In Cancer (COSMIC) annotations file")
-    parser.add_argument("--snpEffDir", dest="snpEffDir", metavar="SNP_EFF_DIR", help="the path to the snpEff directory")
+    parser.add_argument("--snpEffDir", dest="snpEffDir", default='/opt/snpEff', metavar="SNP_EFF_DIR", help="the path to the snpEff directory")
     parser.add_argument("--snpEffFilename", dest="snpEffFilename", metavar="SNP_EFF_FILE", help="the snpEff input database zip file")
-    parser.add_argument("--canonical", action="store_true", default=False, dest="canonical", help="include this argument if only the canonical transcripts from snpEff should be used, %default by default")
+    parser.add_argument("--canonical", action="store_true", default=False, dest="canonical", help="include this argument if only the canonical transcripts from snpEff should be used")
     parser.add_argument("--rnaGeneBlckFile", dest="rnaGeneBlckFile", metavar="RNA_GENE_FILE", help="the RNA gene blacklist file")
     parser.add_argument("--rnaGeneFamilyBlckFile", dest="rnaGeneFamilyBlckFile", metavar="RNA_GENE_FAMILY_FILE", help="the RNA gene family blacklist file")
     parser.add_argument("--blatFastaFilename", dest="blatFastaFilename", metavar="FASTA_FILE", help="the fasta file that can be used during the BLAT filtering")
@@ -866,7 +866,8 @@ def __main__():
                 if execute(cmd):
                     raise Exception("RadiaFilter Call failed")
                 if not correctLineCount(chromLines[chrom], outfile):
-                    raise Exception("RadiaFilter sanity check failed")
+                    errmsg = "RadiaFilter sanity check failed on chrom %s\n" % (chrom)
+                    raise Exception(errmsg)
                 with open(logFile, 'r') as f:
                     print >>sys.stderr, f.read()
         else:
@@ -886,7 +887,8 @@ def __main__():
                 with open(logFile, 'r') as f:
                     print >>sys.stderr, f.read()
                 if not correctLineCount(chromLines[chrom], rawOuts[chrom]):
-                    sys.stderr.write("RadiaFilter sanity check failed on chrome %s\n" % (chrom))
+                    errmsg = "RadiaFilter sanity check failed on chrom %s\n" % (chrom)
+                    raise Exception(errmsg)
 
         # the radiaMerge command only uses the output directory and patient name
         cmd, mergeOut = radiaMerge(args, tempDir)
