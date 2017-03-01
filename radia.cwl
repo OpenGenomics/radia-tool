@@ -10,7 +10,7 @@ doc: "Runs radia on individual chromosomes, then merges output. An input DNA (ex
 
 hints:
   DockerRequirement:
-    dockerPull: opengenomics/radia-tool
+    dockerPull: quay.io/opengenomics/radia
 
 requirements:
   - class: InlineJavascriptRequirement
@@ -85,8 +85,9 @@ inputs:
 
   patientId:
     type: string?
+    default: myPatient
     doc: |
-      a unique patient Id that will be added to the SAMPLE and INDIVIDUAL tags in the vcf header (PATIENT)
+      a unique patient Id that will be added to the SAMPLE and INDIVIDUAL tags in the vcf header (myPatient)
     inputBinding:
       position: 3
       prefix: --patientId
