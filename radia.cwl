@@ -10,7 +10,7 @@ doc: "Runs radia on individual chromosomes, then merges output. An input DNA (ex
 
 hints:
   DockerRequirement:
-    dockerPull: quay.io/opengenomics/radia
+    dockerPull: opengenomics/radia:latest
 
 requirements:
   - class: InlineJavascriptRequirement
