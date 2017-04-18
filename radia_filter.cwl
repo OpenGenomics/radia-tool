@@ -10,7 +10,7 @@ doc: "Filter radia output. If the input is from exomes plus RNA-Seq, set dnaOnly
 
 hints:
   DockerRequirement:
-    dockerPull: quay.io/opengenomics/radia
+    dockerPull: opengenomics/radia:latest
 
 requirements:
   - class: InlineJavascriptRequirement
