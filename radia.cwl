@@ -23,7 +23,7 @@ inputs:
     inputBinding:
       position: 3
       prefix: --fastaFilename
-# Note: It is possible to specify fasta files for each individual input, see below
+  # Note: It is possible to specify fasta files for each individual input, see below
 
   dnaNormalFilename:
     type: File
@@ -32,14 +32,8 @@ inputs:
     inputBinding:
       position: 3
       prefix: --dnaNormalFilename
-
-  dnaNormalBaiFilename:
-    type: File
-    doc: |
-      the name of the normal DNA .bai file
-    inputBinding:
-      position: 3
-      prefix: --dnaNormalBaiFilename
+    secondaryFiles:
+      - .bai
 
   dnaTumorFilename:
     type: File
@@ -48,15 +42,8 @@ inputs:
     inputBinding:
       position: 3
       prefix: --dnaTumorFilename
-
-  dnaTumorBaiFilename:
-    type: File
-    doc: |
-      the name of the tumor DNA .bai file
-    inputBinding:
-      position: 3
-      prefix: --dnaTumorBaiFilename
-
+    secondaryFiles:
+      - .bai
 
   out_vcf:
     type: string

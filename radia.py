@@ -3,6 +3,7 @@
 import sys
 import argparse
 import os
+import re
 import shutil
 import subprocess
 import tempfile
@@ -267,7 +268,7 @@ def removeSpaces(mystring):
     return False
 
 
-def get_bam_seq(inputBamFile):
+def get_bam_seq(inputBamFile, exclude):
     samtools = which("samtools")
     cmd = [samtools, "idxstats", inputBamFile]
     print "calling", cmd
@@ -278,8 +279,8 @@ def get_bam_seq(inputBamFile):
         tmp = line.split("\t")
         if len(tmp) == 4 and tmp[2] != "0":
             seqs.append(tmp[0])
-    return seqs
-
+    r = re.compile("|".join(exclude))
+    return filter(lambda i: not r.match(i), seqs)
 
 def __main__():
     # small hack, sometimes it seems like docker file systems are avalible
@@ -629,6 +630,12 @@ def __main__():
     parser.add_argument('--number_of_procs', dest='procs', type=int, default=1)
     parser.add_argument('--workdir', default="./")
     parser.add_argument('--no_clean', action="store_true", default=False)
+    
+    parser.add_argument('--exclude', 
+                        type=str, 
+                        nargs="+", 
+                        default=["hs37d5", "*GL*"], 
+                        help="chromosomes/contigs matching these patterns will be excluded from analysis")
 
     args = parser.parse_args()
     tempDir = tempfile.mkdtemp(dir="./", prefix="radia_work_")
@@ -713,7 +720,7 @@ def __main__():
         args.rnaTumorDesc = removeSpaces(args.rnaTumorDesc)
 
         radiaOuts = []
-        chroms = get_bam_seq(i_dnaNormalFilename)
+        chroms = get_bam_seq(i_dnaNormalFilename, args.exclude)
         if args.procs == 1:
             for chrom in chroms:
                 cmd, radiaOutput = radia(chrom, args, tempDir,

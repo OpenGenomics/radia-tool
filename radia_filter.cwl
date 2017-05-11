@@ -48,14 +48,8 @@ inputs:
     inputBinding:
       position: 2
       prefix: --dnaNormalFilename
-
-  dnaNormalBaiFilename:
-    type: File
-    doc: |
-      the name of the normal DNA .bai file
-    inputBinding:
-      position: 2
-      prefix: --dnaNormalBaiFilename
+    secondaryFiles:
+      - .bai
 
   dnaTumorFilename:
     type: File
@@ -64,14 +58,8 @@ inputs:
     inputBinding:
       position: 2
       prefix: --dnaTumorFilename
-
-  dnaTumorBaiFilename:
-    type: File
-    doc: |
-      the name of the tumor DNA .bai file
-    inputBinding:
-      position: 2
-      prefix: --dnaTumorBaiFilename
+    secondaryFiles:
+      - .bai
 
   out_vcf:
     type: string
