@@ -43,7 +43,7 @@ def indexBam(workdir, prefix, inputBamFile, inputBamFileIndex=None):
     inputBamLink = os.path.join(os.path.abspath(workdir), prefix + ".bam")
     os.symlink(inputBamFile, inputBamLink)
     if os.path.exists(inputBamFile + ".bai"):
-        inputBamFileIndex = os.path.exists(inputBamFile + ".bai")
+        inputBamFileIndex = inputBamFile + ".bai"
     if inputBamFileIndex is None or inputBamFileIndex == "None":
         cmd = "samtools index %s" % (inputBamLink)
         execute([cmd])
