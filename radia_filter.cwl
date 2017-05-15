@@ -63,7 +63,7 @@ inputs:
 
   out_vcf:
     type: string
-    default: filtered_out.vcf
+    default: radia_filtered.vcf
     doc: |
       the name of the output file
     inputBinding:

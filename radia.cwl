@@ -47,9 +47,9 @@ inputs:
 
   out_vcf:
     type: string
-    default: out.vcf
+    default: radia.vcf
     doc: |
-      the name of the output vcf (out.vcf)
+      the name of the output vcf (radia.vcf)
     inputBinding:
       position: 3
       prefix: --outputFilename
