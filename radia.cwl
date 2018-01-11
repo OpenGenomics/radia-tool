@@ -5,7 +5,7 @@
 cwlVersion: v1.0
 class: CommandLineTool
 baseCommand: [/opt/radia.py]
-
+label: RADIA
 doc: "Runs radia on individual chromosomes, then merges output. An input DNA (exome) sample pair is required, additional RNA-Seq data for the same sample is advised but optional. Radia performes significantly better when RNA data is added."
 
 hints:
@@ -16,16 +16,16 @@ requirements:
   - class: InlineJavascriptRequirement
 
 inputs:
-  refseq:
+  reference:
     type: File
     doc: |
-      genome fasta file that was used to create the input bam files 
+      genome fasta file that was used to create the input bam files
     inputBinding:
       position: 3
       prefix: --fastaFilename
   # Note: It is possible to specify fasta files for each individual input, see below
 
-  dnaNormalFilename:
+  normal:
     type: File
     doc: |
       the name of the normal DNA .bam file
@@ -35,7 +35,7 @@ inputs:
     secondaryFiles:
       - .bai
 
-  dnaTumorFilename:
+  tumor:
     type: File
     doc: |
       the name of the tumor DNA .bam file
@@ -438,5 +438,3 @@ outputs:
     type: File
     outputBinding:
        glob: $(inputs.out_vcf)
-
-
