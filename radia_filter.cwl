@@ -254,7 +254,7 @@ inputs:
   noPositionalBias:
     type: boolean?
     doc: |
-      include this argument if the positional bias filter should not be applied (False)
+      include this argument if the positional bias filter should not be applied
     inputBinding:
       position: 2
       prefix: --noPositionalBias
