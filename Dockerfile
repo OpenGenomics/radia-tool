@@ -13,7 +13,7 @@ RUN   pip install PyVCF
 RUN   wget https://github.com/ucscCancer/radia/archive/v1.1.5.tar.gz && tar xvzf v1.1.5.tar.gz 
 
 # blat
-RUN   wget -O /usr/bin/blat http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64.v287/blat/blat && chmod +x /usr/bin/blat
+RUN   wget -O /usr/bin/blat http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/blat/blat && chmod +x /usr/bin/blat
 
 # Download and unpack snpEff
 RUN   wget http://downloads.sourceforge.net/project/snpeff/snpEff_latest_core.zip && unzip snpEff_latest_core.zip
