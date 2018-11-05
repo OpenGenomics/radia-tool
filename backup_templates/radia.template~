@@ -1,0 +1,79 @@
+#####
+## If generating JSON for multiple samples, replace '</full/file/path>' or 'null' with '<>', then complete radia.sample_list.tab. See
+## ./backup_templates/radia.sample_list.template for examples. Be certain to provide a unique identifier under the 'run_uid' header to
+## clearly distinguish samples/runs. If *optional* sample-specific values are desired, the appropriate key from this template may be used as
+## a column header in radia.sample_list.tab (be careful to maintain tab-delimited format).
+#####
+tumor: {
+    class: File
+    path: </full/file/path>         # Required file; replace '</full/file/path>' with full path to tumor DNA BAM file [e.g., /my/path/to/tumor.bam]
+normal: {
+    class: File
+    path: </full/file/path>         # Required file; replace '</full/file/path>' with full path to normal DNA BAM file [e.g., /my/path/to/normal.bam]
+reference: {
+    class: File
+    path: </full/file/path>         # Required file; replace '</full/file/path>' with full path to reference FASTA [e.g., /my/path/to/genome.fa.gz]
+dnaNormalBaseQual: null             # Optional integer; minimum normal DNA base quality; 'null' defaults to '10'
+dnaNormalDescription: null          # Optional string; description for normal sample in the VCF header; 'null' defaults to 'NormalDNASample'
+dnaNormalFasta: {
+    class: File
+    path: null                      # Optional file; name of the FASTA file for the normal DNA BAM file
+dnaNormalMapQual: null              # Optional integer; minimum normal DNA mapping quality; 'null' defaults to '10'
+dnaNormalMinAltBases: null          # Optional integer; minimum number of alternative normal DNA reads supporting a variant at a position; 'null' defaults to '2'
+dnaNormalMinTotalBases: null        # Optional integer; minimum number of overall normal DNA reads covering a position; 'null' defaults to '4'
+dnaTumorBaseQual: null              # Optional integer; minimum tumor DNA base quality; 'null' defaults to '10'
+dnaTumorDescription: null           # Optional string; description for tumor sample in the VCF header; 'null' defaults to 'TumorDNASample'
+dnaTumorFasta: {
+    class: File
+    path: null                      # Optional file; name of the FASTA file for the tumor DNA BAM file
+dnaTumorMapQual: null               # Optional integer; minimum tumor DNA mapping quality; 'null' defaults to '10'
+dnaTumorMinAltBases: null           # Optional integer; minimum number of alternative tumor DNA reads supporting a variant at a position; 'null' defaults to '2'
+dnaTumorMinTotalBases: null         # Optional integer; minimum number of overall tumor DNA reads covering a position; 'null' defaults to '4'
+rnaNormalBaiFilename: {
+    class: File
+    path: null                      # Optional file; name of the normal RNA BAI file
+rnaNormalBaseQual: null             # Optional integer; minimum normal RNA base quality; 'null' defaults to '10'
+rnaNormalDescription: null          # Optional string; description for normal sample in the VCF header; 'null' defaults to 'NormalRNASample'
+rnaNormalFasta: {
+    class: File
+    path: null                      # Optional file; name of the FASTA file for the normal RNA BAM file
+rnaNormalFilename: {
+    class: File
+    path: null                      # Optional file; name of the normal RNA BAM file
+rnaNormalMapQual: null              # Optional integer; minimum normal RNA mapping quality; 'null' defaults to '10'
+rnaNormalMinAltBases: null          # Optional integer; minimum number of alternative normal RNA reads supporting a variant at a position; 'null' defaults to '2'
+rnaNormalMinTotalBases: null        # Optional integer; minimum number of overall normal RNA reads covering a position; 'null' defaults to '4'
+rnaTumorBaiFilename: {
+    class: File
+    path: null                      # Optional file; name of the tumor RNA BAI file
+rnaTumorBaseQual: null              # Optional integer; minimum tumor RNA base quality; 'null' defaults to '10'
+rnaTumorDescription: null           # Optional string; description for tumor sample in the VCF header; 'null' defaults to 'TumorRNASample'
+rnaTumorFasta: {
+    class: File
+    path: null                      # Optional file; name of the tumor RNA BAI file
+rnaTumorFilename: {
+    class: File
+    path: null                      # Optional file; name of the tumor RNA BAM file
+rnaTumorMapQual: null               # Optional integer; minimum tumor RNA mapping quality; 'null' defaults to '10'
+rnaTumorMinAltBases: null           # Optional integer; minimum number of alternative tumor RNA reads supporting a variant at a position; 'null' defaults to '2'
+rnaTumorMinTotalBases: null         # Optional integer; minimum number of overall tumor RNA reads covering a position; 'null' defaults to '4'
+genotypeMinDepth: null              # Optional integer; minimum number of bases required for the genotype; 'null' defaults to '2'
+genotypeMinPct: null                # Optional float; minimum percentage of reads required for the genotype; 'null' defaults to '0.10'
+gzip: null                          # Optional boolean; replace 'null' with 'true' to obtain gzip-compressed final VCF; 'null' defaults to 'false'
+log: null                           # Optional string; logging level options include DEBUG, INFO, WARNING, ERROR, or CRITICAL; 'null' defaults to 'WARNING'
+logFilename: null                   # Optional string; name for the log file; 'null' defaults to STDOUT
+no_clean: null                      # Optional boolean; replace 'null' with 'true' to prevent removal of intermediate files; 'null' defaults to 'false'
+number_of_procs: null               # Optional integer; number of CPUs to use; 'null' defaults to '1'
+out_vcf: null                       # Optional string; name of the output VCF; 'null' defaults to 'radia.vcf'
+outputDir: null                     # Optional string; full path to directory where temporary and final filtered outputs should be stored [e.g. /my/path/to/output/]; 'null' defaults to './'
+workdir: null                       # Optional string; full path to working directory to use [e.g., /my/path/to/wrkdir/]; 'null' defaults to './'
+refId: null                         # Optional string; short ID for reference (used in the sample VCF meta tag) [e.g., GRCh37]
+refUrl: null                        # Optional string; URL link to reference (used in the sample VCF meta tag)
+refFilename: null                   # Optional string; full path to the reference file (used in the sample VCF meta tag) [e.g., /my/path/to/genome.fa.gz]
+dataSource: null                    # Optional string; source of the data (used in the sample VCF meta tag)
+sequencingPlatform: null            # Optional string; one-word description of sequencing platform (used in the sample VCF meta tag) [e.g. illumina]
+patientId: null                     # Optional string; unique patient ID to add to the SAMPLE and INDIVIDUAL tags in the final VCF header; 'null' defaults to 'myPatient'
+batchSize: null                     # Optional integer; size of the samtools selections that are loaded into memory at one time; 'null' defaults to '250000000' 
+disease: null                       # Optional string; disease abbreviation to be used in the header [e.g., BRCA]
+statsDir: null                      # Optional string; full path to directory where some basic stats can be output [e.g., /my/path/to/stats/]
+useChrPrefix: null                  # Optional boolean; replace 'null' with 'true' to use 'chr' prefix in samtools command for all BAMs; 'null' defaults to 'false'
