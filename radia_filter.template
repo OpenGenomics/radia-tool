@@ -1,81 +1,98 @@
-#####
-## If generating JSON for multiple samples, replace '</full/file/path>', '<string>', or 'null' with '<>', then complete radia_filter.sample_list.tab.
-## See ./backup_templates/radia_filter.sample_list.template for examples. Be certain to provide a unique identifier under the 'run_uid'
-## header to clearly distinguish samples/runs. If *optional* sample-specific values are desired, the appropriate key from this template may
-## be used as a column header in radia_filter.sample_list.tab (be careful to maintain tab-delimited format).
-#####
-tumor: {
-    class: File
-    path: </full/file/path>         # Required file; replace '</full/file/path>' with full path to tumor DNA BAM file [e.g., /my/path/to/tumor.bam]
-normal: {
-    class: File
-    path: </full/file/path>         # Required file; replace '</full/file/path>' with full path to normal DNA BAM file [e.g., /my/path/to/normal.bam]
-inputVCF: {
-    class: File
-    path: </full/file/path>         # Required file; replace '</full/file/path>' with full path to RADIA-generated VCF file [e.g., /my/path/to/radia.vcf]
-reference: {
-    class: File
-    path:  </full/file/path>        # Required file; replace '</full/file/path>' with full path to reference FASTA [e.g., /my/path/to/genome.fa.gz]
-patientId: <string>                 # Required string; replace 'string' with one-word unique patient ID (used to name output file) [e.g., TCGA-XX-XXXX]
-out_vcf: null                       # Optional string; name of output VCF file; 'null' defaults to 'radia_filtered.vcf'
-workdir: null                       # Optional string; full path to working directory [e.g., /my/path/to/wrkdir]; 'null' defaults to './'
-no_clean: null                      # Optional boolean; replace 'null' with 'true' to prevent removal of intermediate files; 'null' defaults to 'false'
-number_of_procs: null               # Optional integer; number of CPUs to use; 'null' defaults to '1'
-blacklistFilename: {
-    class: File
-    path: null                      # Optional file; full path to blacklist BED file [e.g. /my/path/to/blacklist.bed]
-blatFastaFilename: {
-    class: File
-    path: null                      # Optional file; full path to FASTA file to use during BLAT filtering [e.g. /my/path/to/blat.fasta]
-cosmicFilename: {
-    class: File
-    path: null                      # Optional file; full path to file of COSMIC annotations [e.g. /my/path/to/cosmic.tsv.gz]
-dnaNormalFastaFilename: {
-    class: File
-    path: null                      # Optional file; full path to file of DNA FASTA used to create the BAM alignment [e.g. /my/path/to/normal.fa.gz]
-dnaTumorFastaFilename: {
-    class: File
-    path: null                      # Optional file; full path to file of DNA FASTA used to create the BAM alignment [e.g. /my/path/to/tumor.fa.gz]
-filter-germline: null               # Optional boolean; replace 'null' with 'false' to disable filtering of germline calls; 'null' defaults to 'true'
-filter-rejects: null                # Optional boolean; replace 'null' with 'false' to disable filtering of rejected calls; 'null' defaults to 'true'
-makeTCGAcompliant: null             # Optional boolean; replace 'null' with 'false' to disable conversion of VCF to meet TCGA v1.1 requirements; 'null' defaults to 'true'
-noPositionalBias: null              # Optional boolean; replace 'null' with 'false' to disable application of positional bias filter; 'null' defaults to 'true'
-outputDir: null                     # Optional string; full path to directory where temporary and final filtered outputs are written [e.g., /my/path/to/outdir/]; 'null' defaults to './'
-canonical: null                     # Optional boolean; replace 'null' with 'true' to use only canonical transcripts from snpEff; 'null' defaults to 'false'
-dnaOnly: null                       # Optional boolean; replace 'null' with 'false' if analysis is to include data types in addition to DNA alone; 'null' defaults to 'true' [i.e., only DNA inputs will be used]
-pseudoGenesFilename: {
-    class: File
-    path: null                      # Optional file; full path to pseudogenes BED file [e.g. /my/path/to/pseudogenes.bed]
-retroGenesFilename: {
-    class: File
-    path: null                      # Optional file; full path to retrogenes BED file [e.g. /my/path/to/retrogenes.bed]
-rnaGeneBlckFile: {
-    class: File
-    path: null                      # Optional file; full path to RNA gene blacklist file [e.g. /my/path/to/rnablklist.tab];
-rnaGeneFamilyBlckFile: {
-    class: File
-    path: null                      # Optional file; full path to RNA gene family blacklist file [e.g. /my/path/to/rnafamilyblklist.tab]
-rnaNormalBaiFilename: {
-    class: File
-    path: null                      # Optional file; full path to normal RNA BAI file [e.g. /my/path/to/normal.bam.bai]
-rnaNormalFastaFilename: {
-    class: File
-    path: null                      # Optional file; full path to normal RNA FASTA file used to create the BAM alignment [e.g. /my/path/to/normal.fa.gz]
-rnaNormalFilename: {
-    class: File
-    path: null                      # Optional file; full path to normal RNA BAM file [e.g. /my/path/to/normal.bam]
-rnaTumorBaiFilename: {
-    class: File
-    path: null                      # Optional file; full path to tumor RNA BAI file [e.g. /my/path/to/tumor.bam.bai]
-rnaTumorFastaFilename: {
-    class: File
-    path: null                      # Optional file; full path to tumor RNA FASTA file used to create the BAM alignment [e.g. /my/path/to/tumor.fa.gz]
-rnaTumorFilename: {
-    class: File
-    path: null                      # Optional file; full path to tumor RNA BAI file [e.g. /my/path/to/tumor.bam]
-snpFilename: {
-    class: File
-    path: null                      # Optional file; full path to dnSNP VCF [e.g. /my/path/to/dbsnp.vcf]
-targetFilename: {
-    class: File
-    path: null                      # Optional file; full path to BED or TXT file of exon capture targets [e.g. /my/path/to/targets.bed]
+{
+    "tumor": {
+        "class" : "File",
+        "path": "</full/file/path>"         # Required file; replace '</full/file/path>' with full path to tumor DNA BAM file [e.g., /my/path/to/tumor.bam]
+    },
+    "normal" : {
+        "class": "File",
+        "path" : "</full/file/path>"         # Required file; replace '</full/file/path>' with full path to normal DNA BAM file [e.g., /my/path/to/normal.bam]
+    },
+    "inputVCF" : {
+        "class" : "File",
+        "path" : "</full/file/path>"         # Required file; replace '</full/file/path>' with full path to RADIA-generated VCF file [e.g., /my/path/to/radia.vcf]
+    },
+    "reference" : {
+        "class" : "File",
+        "path" :  "</full/file/path>"        # Required file; replace '</full/file/path>' with full path to reference FASTA [e.g., /my/path/to/genome.fa.gz]
+    },
+    "patientId": "<string>",                 # Required string; replace 'string' with one-word unique patient ID (used to name output file) [e.g., TCGA-XX-XXXX]
+    "out_vcf" : null,                       # Optional string; name of output VCF file; 'null' defaults to 'radia_filtered.vcf'
+    "workdir" : null,                       # Optional string; full path to working directory [e.g., /my/path/to/wrkdir]; 'null' defaults to './'
+    "no_clean" : null,                      # Optional boolean; replace 'null' with 'true' to prevent removal of intermediate files; 'null' defaults to 'false'
+    "number_of_procs" : null,               # Optional integer; number of CPUs to use; 'null' defaults to '1'
+    "blacklistFilename": {
+        "class" : "File",
+        "path": null                      # Optional file; full path to blacklist BED file [e.g. /my/path/to/blacklist.bed]
+    },
+    "blatFastaFilename" : {
+        "class" : "File",
+        "path" : null                      # Optional file; full path to FASTA file to use during BLAT filtering [e.g. /my/path/to/blat.fasta]
+    },
+    "cosmicFilename" : {
+        "class" : "File",
+        "path": null                      # Optional file; full path to file of COSMIC annotations [e.g. /my/path/to/cosmic.tsv.gz]
+    },
+    "dnaNormalFastaFilename" : {
+        "class" : "File",
+        "path" : null                      # Optional file; full path to file of DNA FASTA used to create the BAM alignment [e.g. /my/path/to/normal.fa.gz]
+    },
+    "dnaTumorFastaFilename" : {
+        "class" : "File",
+        "path" : null                      # Optional file; full path to file of DNA FASTA used to create the BAM alignment [e.g. /my/path/to/tumor.fa.gz]
+    },
+    "filter-germline" : null,               # Optional boolean; replace 'null' with 'false' to disable filtering of germline calls; 'null' defaults to 'true'
+    "filter-rejects" : null,                # Optional boolean; replace 'null' with 'false' to disable filtering of rejected calls; 'null' defaults to 'true'
+    "makeTCGAcompliant" : null,            # Optional boolean; replace 'null' with 'false' to disable conversion of VCF to meet TCGA v1.1 requirements; 'null' defaults to 'true'
+    "noPositionalBias" : null,              # Optional boolean; replace 'null' with 'false' to disable application of positional bias filter; 'null' defaults to 'true'
+    "outputDir" : null,                     # Optional string; full path to directory where temporary and final filtered outputs are written [e.g., /my/path/to/outdir/]; 'null' defaults to './'
+    "canonical" : null,                     # Optional boolean; replace 'null' with 'true' to use only canonical transcripts from snpEff; 'null' defaults to 'false'
+    "dnaOnly" : null,                       # Optional boolean; replace 'null' with 'false' if analysis is to include data types in addition to DNA alone; 'null' defaults to 'true' [i.e., only DNA inputs will be used]
+    "pseudoGenesFilename" : {
+        "class" : "File",
+        "path: : null                      # Optional file; full path to pseudogenes BED file [e.g. /my/path/to/pseudogenes.bed]
+    },
+    "retroGenesFilename" : {
+        "class" : "File",
+        "path" : null                      # Optional file; full path to retrogenes BED file [e.g. /my/path/to/retrogenes.bed]
+    },
+    "rnaGeneBlckFile" : {
+        "class" : "File",
+        "path" : null                      # Optional file; full path to RNA gene blacklist file [e.g. /my/path/to/rnablklist.tab];
+    },
+    "rnaGeneFamilyBlckFile" : {
+        "class" : "File",
+        "path": null                      # Optional file; full path to RNA gene family blacklist file [e.g. /my/path/to/rnafamilyblklist.tab]
+    },
+    "rnaNormalBaiFilename" : {
+        "class" : "File",
+        "path" : null                      # Optional file; full path to normal RNA BAI file [e.g. /my/path/to/normal.bam.bai]
+    },
+    "rnaNormalFastaFilename" : {
+        "class" : "File",
+        "path" : null                      # Optional file; full path to normal RNA FASTA file used to create the BAM alignment [e.g. /my/path/to/normal.fa.gz]
+    },
+    "rnaNormalFilename" : {
+        "class" : "File",
+        "path" : null                      # Optional file; full path to normal RNA BAM file [e.g. /my/path/to/normal.bam]
+    },
+    "rnaTumorBaiFilename" : {
+        "class" : "File",
+        "path" : null                      # Optional file; full path to tumor RNA BAI file [e.g. /my/path/to/tumor.bam.bai]
+    },
+    "rnaTumorFastaFilename" : {
+        "class" : "File",
+        "path" : null                      # Optional file; full path to tumor RNA FASTA file used to create the BAM alignment [e.g. /my/path/to/tumor.fa.gz]
+    },
+    "rnaTumorFilename" : {
+        "class" : "File",
+        "path" : null                      # Optional file; full path to tumor RNA BAI file [e.g. /my/path/to/tumor.bam]
+    },
+    "snpFilename" : {
+        "class" : "File",
+        "path" : null                      # Optional file; full path to dnSNP VCF [e.g. /my/path/to/dbsnp.vcf]
+    },
+    "targetFilename" : {
+        "class" : "File",
+        "path" : null                      # Optional file; full path to BED or TXT file of exon capture targets [e.g. /my/path/to/targets.bed]
+    }
+}
